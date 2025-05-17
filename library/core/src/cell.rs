@@ -2165,34 +2165,38 @@ impl<T: ?Sized> UnsafeCell<T> {
         unsafe { &mut *(value as *mut T as *mut UnsafeCell<T>) }
     }
 
-    /// Gets a mutable pointer to the wrapped value.
+    /// 获取指向被包装值的可变指针。
     ///
-    /// This can be cast to a pointer of any kind.
-    /// Ensure that the access is unique (no active references, mutable or not)
-    /// when casting to `&mut T`, and ensure that there are no mutations
-    /// or mutable aliases going on when casting to `&T`
+    /// 该指针可以转换为任何类型的指针。
+    /// 在将其转换为 `&mut T` 时，要确保访问是唯一的（没有其他活动的可变或不可变引用）。
+    /// 在将其转换为 `&T` 时，要确保不会有其他可变操作或可变别名存在。
+    /// 译器优化假设被破坏
+    // 避免内存安全问题，多个数据访问可能破坏数据的一致性，进行不合理的代码执行序列
+
     ///
-    /// # Examples
+    /// # 示例
     ///
-    /// ```
+    /// ```rust
     /// use std::cell::UnsafeCell;
     ///
     /// let uc = UnsafeCell::new(5);
     ///
     /// let five = uc.get();
     /// ```
-    #[inline(always)]
-    #[stable(feature = "rust1", since = "1.0.0")]
-    #[rustc_const_stable(feature = "const_unsafecell_get", since = "1.32.0")]
-    #[rustc_as_ptr]
-    #[rustc_never_returns_null_ptr]
+    ///
+    /// 标注属性：
+    /// - `#[inline(always)]`：始终内联此函数。  
+    /// - `#[stable(feature = "rust1", since = "1.0.0")]`：此 API 自 Rust 1.0.0 起稳定。  
+    /// - `#[rustc_const_stable(feature = "const_unsafecell_get", since = "1.32.0")]`：自 Rust 1.32.0 起，此函数可在常量上下文中调用。  
+    /// - `#[rustc_as_ptr]`：允许将常量函数的返回值当作裸指针常量使用。  
+    /// - `#[rustc_never_returns_null_ptr]`：此函数绝不会返回空指针。  
     pub const fn get(&self) -> *mut T {
-        // We can just cast the pointer from `UnsafeCell<T>` to `T` because of
-        // #[repr(transparent)]. This exploits std's special status, there is
-        // no guarantee for user code that this will work in future versions of the compiler!
+        // 由于使用了 #[repr(transparent)]，我们可以将 `UnsafeCell<T>` 的指针
+        // 直接转换为 `T` 的指针。
+        // 这一转换依赖于标准库的特殊地位；在未来的编译器版本中，
+        // 不保证用户代码也能如此转换！
         self as *const UnsafeCell<T> as *const T as *mut T
     }
-
     /// Returns a mutable reference to the underlying data.
     ///
     /// This call borrows the `UnsafeCell` mutably (at compile-time) which
