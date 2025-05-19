@@ -784,16 +784,16 @@ pub fn take<T: Default>(dest: &mut T) -> T {
     replace(dest, T::default())
 }
 
-/// Moves `src` into the referenced `dest`, returning the previous `dest` value.
+/// 将 `src` 移动到引用的 `dest` 中，返回之前的 `dest` 值。
 ///
-/// Neither value is dropped.
+/// 两个值都不会被 drop。
 ///
-/// * If you want to replace the values of two variables, see [`swap`].
-/// * If you want to replace with a default value, see [`take`].
+/// * 如果你想替换两个变量的值，请参见 [`swap`]。
+/// * 如果你想用默认值替换，请参见 [`take`]。
 ///
-/// # Examples
+/// # 示例
 ///
-/// A simple example:
+/// 一个简单的例子:
 ///
 /// ```
 /// use std::mem;
@@ -805,15 +805,15 @@ pub fn take<T: Default>(dest: &mut T) -> T {
 /// assert_eq!(vec![3, 4, 5], v);
 /// ```
 ///
-/// `replace` allows consumption of a struct field by replacing it with another value.
-/// Without `replace` you can run into issues like these:
+/// `replace` 允许通过用另一个值替换来消费结构体字段。
+/// 不使用 `replace` 你可能会遇到这样的问题:
 ///
 /// ```compile_fail,E0507
 /// struct Buffer<T> { buf: Vec<T> }
 ///
 /// impl<T> Buffer<T> {
 ///     fn replace_index(&mut self, i: usize, v: T) -> T {
-///         // error: cannot move out of dereference of `&mut`-pointer
+///         // 错误: 无法从 `&mut` 指针的解引用中移出值
 ///         let t = self.buf[i];
 ///         self.buf[i] = v;
 ///         t
@@ -821,9 +821,9 @@ pub fn take<T: Default>(dest: &mut T) -> T {
 /// }
 /// ```
 ///
-/// Note that `T` does not necessarily implement [`Clone`], so we can't even clone `self.buf[i]` to
-/// avoid the move. But `replace` can be used to disassociate the original value at that index from
-/// `self`, allowing it to be returned:
+/// 注意 `T` 不一定实现了 [`Clone`]，所以我们甚至不能克隆 `self.buf[i]` 来
+/// 避免移动。但是可以使用 `replace` 来解除该索引处原始值与 `self` 的关联，
+/// 从而允许返回它:
 ///
 /// ```
 /// # #![allow(dead_code)]
@@ -852,9 +852,8 @@ pub const fn replace<T>(dest: &mut T, src: T) -> T {
     // The compiler optimizes the implementation below to two `memcpy`s
     // while `swap` would require at least three. See PR#83022 for details.
 
-    // SAFETY: We read from `dest` but directly write `src` into it afterwards,
-    // such that the old value is not duplicated. Nothing is dropped and
-    // nothing here can panic.
+criterion_group!(benches, bench_collect, bench_with_capacity_extend);
+criterion_main!(benches);
     unsafe {
         // Ideally we wouldn't use the intrinsics here, but going through the
         // `ptr` methods introduces two unnecessary UbChecks, so until we can
